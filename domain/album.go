@@ -6,7 +6,7 @@ type Album struct {
 	Artists     []Artist `json:"artists"`
 	Type        string   `json:"album_type"`
 	ReleaseDate string   `json:"release_date"`
-	TotalTracks string   `json:"total_tracks"`
+	TotalTracks int   `json:"total_tracks"`
 	Images      []Image  `json:"images"`
 	Url         string   `json:"uri"`
 }
