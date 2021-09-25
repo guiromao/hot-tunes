@@ -40,8 +40,8 @@ func Start() {
 func authenticate() (*oauth2.Token, error) {
 	ctx := context.Background()
 	config := &clientcredentials.Config{
-		ClientID:     "f508500db4a74a4fa7be01d813bf80b9",
-		ClientSecret: "8a20c919cd4c4ea1a9fe3290453dad87",
+		ClientID:     os.Getenv("CLIENT_ID"),
+		ClientSecret: os.Getenv("CLIENT_SECRET"),
 		TokenURL:     spotifyauth.TokenURL,
 	}
 	token, err := config.Token(ctx)

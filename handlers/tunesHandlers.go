@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/guiromao/hot-tunes/app/dto"
 	"github.com/guiromao/hot-tunes/domain"
+	"github.com/guiromao/hot-tunes/dto"
 	"github.com/guiromao/hot-tunes/services"
 )
 
