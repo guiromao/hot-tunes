@@ -19,7 +19,7 @@ import (
 func Start() {
 	router := mux.NewRouter()
 	setEnvVars()
-	token, err := authenticate()
+	token, err := createConnection()
 
 	if err != nil {
 
@@ -32,12 +32,12 @@ func Start() {
 	router.Path("/hottunes/api/v1/search").HandlerFunc(tunesHandler.SearchArtist).Methods("GET")
 	router.Path("/hottunes/api/v1/newsfrom/{artist_id}").HandlerFunc(tunesHandler.SearchNews).Methods(http.MethodGet)
 
-	address := os.Getenv("address")
-	port := os.Getenv("port")
+	address := os.Getenv("ADDRESS")
+	port := os.Getenv("PORT")
 	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%s", address, port), router))
 }
 
-func authenticate() (*oauth2.Token, error) {
+func createConnection() (*oauth2.Token, error) {
 	ctx := context.Background()
 	config := &clientcredentials.Config{
 		ClientID:     os.Getenv("CLIENT_ID"),
