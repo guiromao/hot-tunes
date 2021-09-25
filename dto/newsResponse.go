@@ -5,5 +5,5 @@ import (
 )
 
 type NewsResponse struct {
-	News []domain.Album `json:"news"`
+	NewReleases []domain.Album `json:"new_releases"`
 }

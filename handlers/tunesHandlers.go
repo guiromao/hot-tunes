@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -46,7 +45,6 @@ func (t TunesHandler) SearchNews(w http.ResponseWriter, req *http.Request) {
 	artistId := vars["artist_id"]
 
 	albums, err := t.service.SearchNews(artistId)
-	fmt.Println("Here: ", albums)
 
 	var code int
 	var data interface{}
@@ -55,11 +53,11 @@ func (t TunesHandler) SearchNews(w http.ResponseWriter, req *http.Request) {
 		code = err.Code
 		data = err.Message
 	} else if len(albums) == 0 {
-		code = http.StatusOK
+		code = http.StatusNotFound
 		data = domain.MessageServer{Text: "No new songs from this artist"}
 	} else {
 		code = http.StatusOK
-		data = dto.NewsResponse{News: albums}
+		data = dto.NewsResponse{NewReleases: albums}
 	}
 
 	writeResponse(w, code, data)

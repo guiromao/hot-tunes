@@ -21,14 +21,28 @@ type SearchServiceSpotify struct {
 }
 
 func (serv SearchServiceSpotify) SearchArtist(artistName string) ([]domain.Artist, *errors.AppError) {
-	client := &http.Client{}
-	bearer := "Bearer " + string(serv.Token.AccessToken)
 	searchArtist := strings.ReplaceAll(strings.Trim(artistName, " "), " ", "+")
 	searchQuery := "https://api.spotify.com/v1/search?query=" + searchArtist + "&offset=0&limit=5&type=artist"
-	req, err := http.NewRequest("GET", searchQuery, nil)
+
+	body, err := serv.doApiCall(searchQuery)
 
 	if err != nil {
-		return nil, errs.NewUnexpectedError("Error fetching artists from the database")
+		return nil, errors.NewUnexpectedError("Error retrieving artists")
+	}
+
+	var itemsArtists domain.ItemsArtistsJson
+	json.Unmarshal([]byte(string(body)), &itemsArtists)
+
+	return itemsArtists.Items.Artists, nil
+}
+
+func (s SearchServiceSpotify) doApiCall(query string) ([]byte, error) {
+	client := &http.Client{}
+	bearer := "Bearer " + string(s.Token.AccessToken)
+	req, err := http.NewRequest("GET", query, nil)
+
+	if err != nil {
+		return nil, err
 	}
 
 	req.Header.Add("Authorization", bearer)
@@ -41,23 +55,19 @@ func (serv SearchServiceSpotify) SearchArtist(artistName string) ([]domain.Artis
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("Error while reading the response bytes:", err)
-		return nil, errs.NewUnexpectedError("Error reading the artists data from the data API")
+		return nil, err
 	}
 
-	var itemsArtists domain.ItemsArtistsJson
-	json.Unmarshal([]byte(string(body)), &itemsArtists)
-
-	return itemsArtists.Items.Artists, nil
+	return body, nil
 }
 
 func (s SearchServiceSpotify) SearchNews(artistId string) ([]domain.Album, *errors.AppError) {
-	bearer := "Bearer " + string(s.Token.AccessToken)
 	baseUrl := "https://api.spotify.com/v1/artists/" + artistId + "/albums?offset=0&limit=5&include_groups="
 	urlAlbums := baseUrl + "album"
 	urlSingles := baseUrl + "single"
 
-	albums, err1 := GetAlbums(urlAlbums, bearer)
-	singles, err2 := GetAlbums(urlSingles, bearer)
+	albums, err1 := s.getAlbums(urlAlbums)
+	singles, err2 := s.getAlbums(urlSingles)
 
 	if err1 != nil || err2 != nil {
 		return nil, errs.NewUnexpectedError("Error fetching new albums and singles from artist")
@@ -69,22 +79,8 @@ func (s SearchServiceSpotify) SearchNews(artistId string) ([]domain.Album, *erro
 	return allAlbums, nil
 }
 
-func GetAlbums(url string, bearer string) ([]domain.Album, *errs.AppError) {
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", url, nil)
-
-	if err != nil {
-		return nil, errs.NewUnexpectedError("Error retrieving albums")
-	}
-	// add authorization header to the req
-	req.Header.Add("Authorization", bearer)
-	resp, err := client.Do(req)
-
-	if err == nil {
-		defer resp.Body.Close()
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
+func (s SearchServiceSpotify) getAlbums(url string) ([]domain.Album, *errs.AppError) {
+	body, err := s.doApiCall(url)
 	if err != nil {
 		log.Println("Error while reading the response bytes:", err)
 	}
